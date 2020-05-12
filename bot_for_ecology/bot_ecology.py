@@ -1,14 +1,16 @@
-#!/usr/bin/env python
-# coding: utf-8
 
-# In[ ]:
+# @calc_ecology_bot in telegram
 
 
 import logging
+import os
 
 from telegram import (ReplyKeyboardMarkup, ReplyKeyboardRemove)
 from telegram.ext import (Updater, CommandHandler, MessageHandler, Filters,
                           ConversationHandler, DictPersistence)
+
+PORT = int(os.environ.get('PORT', 5000))
+TOKEN = "968557809:AAFf1kTrVggthzjrpXdr3L0AzWVvgv0Haqc"
 
 # Enable logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -345,7 +347,7 @@ def main():
     # Create the Updater and pass it your bot's token.
     # Make sure to set use_context=True to use the new context based callbacks
     # Post version 12 this will no longer be necessary
-    updater = Updater("968557809:AAFf1kTrVggthzjrpXdr3L0AzWVvgv0Haqc", use_context=True, persistence = DictPersistence())
+    updater = Updater(TOKEN, use_context=True, persistence = DictPersistence())
 
     # Get the dispatcher to register handlers
     dp = updater.dispatcher
@@ -402,7 +404,10 @@ def main():
     dp.add_error_handler(error)
 
     # Start the Bot
-    updater.start_polling()
+    updater.start_webhook(listen="0.0.0.0",
+                          port=int(PORT),
+                          url_path=TOKEN)
+    updater.bot.setWebhook('https://telegram-calc-ecology-bot.herokuapp.com/' + TOKEN)
 
     # Run the bot until you press Ctrl-C or the process receives SIGINT,
     # SIGTERM or SIGABRT. This should be used most of the time, since
