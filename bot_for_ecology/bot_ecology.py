@@ -24,10 +24,11 @@ K, ETA1, D0, W, Z, ETA2 = range(6)
 
 def start_calc_nitrogen_oxides(update, context):
     update.message.reply_text(
-        "Hi! Let`s calculate nitrogen oxides. "
-        "Send /cancel to stop talking to me.\n\n"
-        "Please enter value of K.\n"
-        "It is must be a number")
+        "Ви обрали оксиди азоту\n\n"
+        "Показник емісії буде розрахований на основі ваших даних\n\n"
+        "Для початку введіть показник емісії оксидів азоту без урахування заходів скорочення викиду.\n\n"
+        "Це має бути число, виміряне в г/ГДж\n\n\n"
+        "Або надішліть /cancel щоб обрати іншу речовину")
 
     return K
 
@@ -42,7 +43,7 @@ def get_k(update, context):
                       ['Малотоксичні пальники + ступенева подача повітря + рециркуляція димових газів'], 
                       ['Малотоксичні пальники + ступенева подача повітря + подача третинного повітря']]
     
-    update.message.reply_text('Тепер оберіть тип первинних заходів зі скорочення викиду оксиду азоту',
+    update.message.reply_text('Тепер оберіть тип первинних заходів зі скорочення викиду оксидів азоту',
                              reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True))
     
     return ETA1
@@ -72,8 +73,8 @@ def get_eta1(update, context):
         
     logger.info("Eta1 = %s", n1)
     context.user_data['eta1'] = n1
-    update.message.reply_text('Введіть продуктивність парового котла.\n'
-                              'Це повинно бути число',
+    update.message.reply_text('Введіть паропродуктивність парового котла.\n\n\n'
+                              'Це повинно бути число, виміряне в т/год',
                                reply_markup=ReplyKeyboardRemove())
     
     return D0
@@ -110,7 +111,7 @@ def get_w(update, context):
     reply_keyboard = [['Тверде паливо'], 
                       ['Природне паливо'],
                       ['Мазут']]
-    update.message.reply_text('Оберіть тип палива',
+    update.message.reply_text('Оберіть тип палива, який використовується',
                                reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True))
     
     return Z
@@ -143,7 +144,7 @@ def get_eta2(update, context):
     key = update.message.text
     values = {
         'Селективне некаталітичне відновлення' : (0.5, 0.99),  
-        'Селективне каталітичне відновленняпаливо' : (0.8, 0.99), 
+        'Селективне каталітичне відновлення' : (0.8, 0.99), 
         'Активоване вугілля' : (0.7, 0.99),
         'DESONOX – SNOX' : (0.95, 0.99)
     }
@@ -170,7 +171,7 @@ def get_eta2(update, context):
     reply_keyboard = [['/start_calc_nitrogen_oxides'], 
                       ['/start_calc_sulfur_dioxide']]
     
-    update.message.reply_text('The value is {:.4f}'.format(value),
+    update.message.reply_text('Показник емісії обраної вами речовини: {:.4f} г/ГДж'.format(value),
                               reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True))
     
     return ConversationHandler.END
@@ -179,10 +180,11 @@ def get_eta2(update, context):
 def start_calc_sulfur_dioxide(update, context):
 
     update.message.reply_text(
-        "Hi! Let`s calculate sulfure dioxide. "
-        "Send /cancel to stop talking to me.\n\n"
-        "Please enter value of Q."
-        "It is must be a number")
+        "Ви обрали діоксид сірки"
+        "Показник емісії буде розрахований на основі ваших даних.\n\n"
+        "Для початку введіть значення нижчої робочої теплоти згоряння палива.\n"
+        "Це має бути число, виміряне в МДж/кг"
+        "Або надішліть /cancel щоб обрати іншу речовину")
 
     return Q
 
@@ -191,7 +193,7 @@ def get_q(update, context):
     reply_keyboard = [['Вугілля', 'Мазут']]
     logger.info("Q = %s", update.message.text)
     context.user_data['Q'] = update.message.text
-    update.message.reply_text('Now enter тип палива',
+    update.message.reply_text('Тепер оберіть тип палива, яке використовується',
                               reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True))
 
     return Type
@@ -210,7 +212,7 @@ def get_type(update, context):
         update.message.reply_text('Не зрозумілий тип палива, завершення підрахунку')
         update.message.reply_text(t)
         return ConversationHandler.END
-    update.message.reply_text('Введіть марку палива',
+    update.message.reply_text('Оберіть марку палива',
                               reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True))
     return S
 
@@ -312,7 +314,7 @@ def get_n2(update, context):
     value = (10**6/q)*(2*s/100)*(1-n1)*(1-n2*b)
     reply_keyboard = [['/start_calc_nitrogen_oxides'], 
                       ['/start_calc_sulfur_dioxide']]
-    update.message.reply_text('The value is {:.4f}'.format(value),
+    update.message.reply_text('Показник емісії обраної вами речовини: {:.4f} г/ГДж'.format(value),
                               reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True))
    
     return ConversationHandler.END
@@ -320,10 +322,10 @@ def get_n2(update, context):
 
 def cancel(update, context):
     user = update.message.from_user
-    logger.info("User %s canceled the conversation.", user.first_name)
+    logger.info("Користувач %s скасував розрахунок", user.first_name)
     reply_keyboard = [['/start_calc_nitrogen_oxides'], 
                       ['/start_calc_sulfur_dioxide']]
-    update.message.reply_text('Bye! I hope we can talk again some day.',
+    update.message.reply_text('Дякуємо що скористались нашим ботом!',
                               reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True))
 
     return ConversationHandler.END
@@ -332,10 +334,13 @@ def cancel(update, context):
 def start(update, context):
     reply_keyboard = [['/start_calc_nitrogen_oxides'], 
                       ['/start_calc_sulfur_dioxide']]
-    update.message.reply_text('Hello, I`m Telegram bot, that will help you to calculate something.\n'
-                              'Бот був створений для лабораторної роботи з екології студентами'
-                              'групи ТІ-82 Гнатюком Євгенієм та Човган Іванною\n'
-                              'use commends on keyboard to start calculating.',
+    update.message.reply_text('Привіт!\n\nБот створений для розрахунку кількості викидів забруднюючих речовин в атмосферу від енергетичних установок.\n\n'
+                              'Для цього використовується показник емісії в грамах на ГДж. Щоб розрахувати показник, спочатку виберіть речовину, кількість викиду якої потрібно розрахувати.\n\n\n'
+                              'Оберіть потрібну речовину за допомогою команд:\n\n'
+                              '/start_calc_nitrogen_oxides - обчислення викидів оксидів азоту\n'
+                              '/start_calc_sulfur_dioxide - обчислення викидів діоксиду сірки\n\n\n'
+                              'P.s. Бот був створений для лабораторної роботи з екології студентами '
+                              'групи ТІ-82 Гнатюком Євгенієм та Човган Іванною\n',
                              reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True))
 
 def error(update, context):
@@ -417,6 +422,9 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+
+# In[ ]:
 
 
 
